@@ -1,1 +1,6 @@
-venv/ 
+venv/
+new_env/
+.vscode/
+notebook/catboost_info/
+__pycache__/
+.ipynb_checkpoints/
