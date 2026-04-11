@@ -26,6 +26,8 @@ class DataIngestion:
     def initiate_data_ingestion(self):
         logging.info("Entered the data ingestion method or component")
         try:
+            # Prefer the notebook dataset location used in this project, but fall
+            # back to `data/stud.csv` so the component can run in either layout.
             data_path = Path("notebook") / "data" / "stud.csv"
             if not data_path.exists():
                 data_path = Path("data") / "stud.csv"
@@ -36,11 +38,17 @@ class DataIngestion:
             df = pd.read_csv(data_path)
             logging.info("Read the dataset as dataframe")
 
+            # Create the artifacts directory where the raw, train, and test files
+            # will be written for the next pipeline stages.
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
 
+            # Save the full raw dataset before splitting so we preserve the original
+            # input used by the pipeline.
             df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
 
             logging.info("Train test split initiated")
+            # Split the dataset into training and testing sets with a fixed random
+            # seed so results are reproducible across runs.
             train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
 
             train_set.to_csv(self.ingestion_config.train_data_path, index=False, header=True)
@@ -61,6 +69,8 @@ if __name__ == "__main__":
     train_data, test_data = obj.initiate_data_ingestion()
 
     try:
+        # Import these here so the ingestion component can still run on its own
+        # even if transformation or training code is not ready yet.
         from src.components.data_transformation import DataTransformation
         from src.components.model_trainer import ModelTrainer
     except ImportError:
